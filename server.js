@@ -1,80 +1,90 @@
-const dns = require("dns");
+const express = require("express");
+const cors = require("cors");
+const dotenv = require("dotenv");
 
-dns.setServers(["8.8.8.8", "1.1.1.1"]);
-const path=require("path");
-const express=require("express");
-const cors=require("cors");
-const helmet=require("helmet");
-const rateLimit=require("express-rate-limit");
-const dotenv=require("dotenv");
-const connectDB=require("./config/db");
-const scanRoutes=require("./routes/scanRoutes");
-const reportRoutes=require("./routes/reportRoutes");
-const errorHandler=require("./middleware/errorHandler");
+const connectDB = require("./config/db");
 
 dotenv.config();
 
-const app=express();
-const PORT=process.env.PORT||5000;
-const frontendPath=path.join(__dirname,"..","frontend");
+const app = express();
+
+// ===============================
+// MIDDLEWARE
+// ===============================
+
+app.use(
+  cors({
+    origin: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: true }));
+
+// ===============================
+// DATABASE
+// ===============================
 
 connectDB();
 
-app.use(helmet({
-    crossOriginResourcePolicy:{policy:"cross-origin"}
-}));
+// ===============================
+// API ROUTES
+// ===============================
 
-app.use(cors({
-    origin:true,
-    methods:["GET","POST","PUT","DELETE","OPTIONS"],
-    allowedHeaders:["Content-Type"]
-}));
+app.use("/api/scams", require("./routes/scamRoutes"));
 
-app.use(express.json({limit:"10kb"}));
-app.use(express.urlencoded({extended:true,limit:"10kb"}));
+// ===============================
+// ROOT ROUTE
+// ===============================
 
-const apiLimiter=rateLimit({
-    windowMs:15*60*1000,
-    max:100,
-    standardHeaders:true,
-    legacyHeaders:false,
-    message:{
-        success:false,
-        message:"Too many requests. Please try again later."
-    }
+app.get("/", (req, res) => {
+  res.status(200).send("ScamShield Backend is Running 🚀");
 });
 
-app.use("/api",apiLimiter);
+// ===============================
+// HEALTH CHECK
+// ===============================
 
-app.use("/frontend",express.static(frontendPath));
-app.use("/html5-qrcode",express.static(path.join(__dirname,"node_modules","html5-qrcode")));
-
-app.get("/",(req,res)=>{
-    res.sendFile(path.join(frontendPath,"index.html"));
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "ScamShield backend is healthy",
+  });
 });
 
-app.get("/api/health",(req,res)=>{
-    res.json({
-        success:true,
-        message:"ScamShield API is running",
-        timestamp:new Date().toISOString()
-    });
+// ===============================
+// 404 HANDLER
+// ===============================
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "API route not found",
+    path: req.originalUrl,
+  });
 });
 
-app.use("/api/scans",scanRoutes);
-app.use("/api/reports",reportRoutes);
+// ===============================
+// ERROR HANDLER
+// ===============================
 
-app.use((req,res)=>{
-    res.status(404).json({
-        success:false,
-        message:"Route not found"
-    });
+app.use((err, req, res, next) => {
+  console.error("Server Error:", err);
+
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
 });
 
-app.use(errorHandler);
+// ===============================
+// START SERVER
+// ===============================
 
-app.listen(PORT,"0.0.0.0",()=>{
-    console.log(`🛡️ ScamShield server running on port ${PORT}`);
-    console.log(`🌐 Desktop: http://localhost:${PORT}`);
-    console.log(`📱 Phone: http://192.168.31.126:${PORT}`);
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 ScamShield server running on port ${PORT}`);
 });
