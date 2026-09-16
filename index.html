@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta
+      name="description"
+      content="ScamShield - Analyze suspicious messages and QR codes before you trust them."
+    />
+
+    <title>ScamShield | Stay One Step Ahead</title>
+    <script src="/html5-qrcode/html5-qrcode.min.js"></script>
+    <link rel="stylesheet" href="/frontend/style.css?v=2 " />
+  </head>
+
+  <body>
+    <header class="header">
+      <div class="nav-container">
+        <a href="#home" class="logo">
+          <span>🛡️</span>
+          SCAMSHIELD
+        </a>
+
+        <nav class="nav">
+          <a href="#home">Home</a>
+          <a href="#scanner-section">Scan</a>
+          <a href="#history-section">History</a>
+          <a href="#about-section">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section id="home" class="hero">
+        <div class="hero-content">
+          <div class="badge">🛡️ Smart Scam Detection</div>
+
+          <h1>
+            Stay One Step
+            <span>Ahead of Scams</span>
+          </h1>
+
+          <p>Analyze suspicious messages and QR codes before you trust them.</p>
+
+          <div class="hero-buttons">
+            <button class="primary-btn" id="heroScanButton">
+              Scan QR Code
+            </button>
+
+            <a href="#analyzer-section" class="secondary-btn">
+              Analyze Message
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section id="analyzer-section" class="section">
+        <div class="section-heading">
+          <span class="section-label">MESSAGE SECURITY</span>
+
+          <h2>Analyze Suspicious Messages</h2>
+
+          <p>
+            Paste a suspicious message and ScamShield will check it for common
+            scam indicators.
+          </p>
+        </div>
+
+        <div class="main-grid">
+          <div class="card analyzer-card">
+            <div class="card-icon">💬</div>
+
+            <h3>Message Analyzer</h3>
+
+            <p class="card-description">
+              Detect urgency, threats, credential requests, suspicious links and
+              other scam patterns.
+            </p>
+
+            <div class="textarea-wrapper">
+              <textarea
+                id="scanInput"
+                maxlength="5000"
+                placeholder="Paste suspicious message here..."
+              ></textarea>
+
+              <div class="character-count">
+                <span id="charCount">0</span>/5000
+              </div>
+            </div>
+
+            <button class="primary-btn full-width" id="analyzeMessageButton">
+              Analyze Message
+            </button>
+          </div>
+
+          <div class="card qr-card">
+            <div class="card-icon">📷</div>
+
+            <h3>QR Code Scanner</h3>
+
+            <p class="card-description">
+              Scan a QR code using your device camera. The decoded content will
+              be analyzed before any link is opened.
+            </p>
+
+            <div class="qr-visual">
+              <div class="qr-placeholder">
+                <span>▦</span>
+              </div>
+            </div>
+
+            <button class="primary-btn full-width" id="scanQrButton">
+              Scan QR Code
+            </button>
+
+            <p class="security-note">
+              🔒 Your VirusTotal API key never reaches the browser.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- IN-PAGE QR SCANNER -->
+
+      <section id="scanner-section" class="scanner-section hidden">
+        <div class="scanner-container">
+          <div class="scanner-header">
+            <div>
+              <span class="section-label">SCAMSHIELD QR SCANNER</span>
+
+              <h2>Scan QR Code</h2>
+            </div>
+
+            <button
+              class="close-btn"
+              id="closeScannerButton"
+              aria-label="Close scanner"
+            >
+              ×
+            </button>
+          </div>
+
+          <div id="cameraError" class="camera-error hidden"></div>
+
+          <div id="cameraPanel" class="camera-panel">
+            <div class="camera-wrapper">
+              <div id="qr-reader"></div>
+              <div class="scan-frame">
+                <span class="corner top-left"></span>
+                <span class="corner top-right"></span>
+                <span class="corner bottom-left"></span>
+                <span class="corner bottom-right"></span>
+                <div class="scan-line"></div>
+              </div>
+            </div>
+
+            <div class="scanner-status">
+              <div class="status-dot" id="scannerStatusDot"></div>
+
+              <span id="scannerStatus"> Preparing camera... </span>
+            </div>
+
+            <button id="torchButton" class="secondary-btn hidden">
+              🔦 Flashlight
+            </button>
+          </div>
+
+          <div id="unsupportedPanel" class="manual-panel hidden">
+            <div class="manual-icon">📱</div>
+
+            <h3>QR scanning is not supported</h3>
+
+            <p>
+              QR scanning is not supported in this browser. Please use a
+              supported Chrome/Edge browser or enter the QR content manually.
+            </p>
+          </div>
+
+          <div class="manual-panel">
+            <h3>Paste QR content manually</h3>
+
+            <p>
+              If camera scanning is unavailable, paste the decoded QR content
+              here.
+            </p>
+
+            <textarea
+              id="manualQrInput"
+              maxlength="5000"
+              placeholder="Example: https://example.com or upi://pay?pa=merchant@upi..."
+            ></textarea>
+
+            <button id="analyzeManualQrButton" class="secondary-btn full-width">
+              Analyze QR Content
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- RESULTS -->
+
+      <section id="result-section" class="section result-section hidden">
+        <div class="section-heading">
+          <span class="section-label"> ANALYSIS RESULT </span>
+
+          <h2>ScamShield Result</h2>
+        </div>
+
+        <div id="resultCard" class="result-card">
+          <div class="result-top">
+            <div>
+              <span id="resultStatus" class="result-status"> LOW RISK </span>
+
+              <h3 id="resultTitle">Content Appears Low Risk</h3>
+            </div>
+
+            <div class="risk-score">
+              <span id="riskScore"> 0 </span>
+
+              <small>/100</small>
+            </div>
+          </div>
+
+          <div class="risk-bar">
+            <div id="riskBar" class="risk-bar-fill"></div>
+          </div>
+
+          <div class="result-grid">
+            <div class="result-box">
+              <span>Risk Level</span>
+
+              <strong id="riskLevel"> LOW </strong>
+            </div>
+
+            <div class="result-box">
+              <span>Content Type</span>
+
+              <strong id="contentType"> MESSAGE </strong>
+            </div>
+          </div>
+
+          <div class="decoded-content">
+            <h4>Decoded / Analyzed Content</h4>
+
+            <pre id="decodedContent"></pre>
+          </div>
+
+          <div id="upiDetails" class="upi-details hidden">
+            <h4>UPI Details</h4>
+
+            <div class="upi-grid">
+              <div>
+                <span>UPI ID</span>
+                <strong id="upiId">-</strong>
+              </div>
+
+              <div>
+                <span>Payee</span>
+                <strong id="upiPayee">-</strong>
+              </div>
+
+              <div>
+                <span>Amount</span>
+                <strong id="upiAmount">-</strong>
+              </div>
+
+              <div>
+                <span>Currency</span>
+                <strong id="upiCurrency">-</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-reasons">
+            <h4>Reasons</h4>
+
+            <ul id="reasonList"></ul>
+          </div>
+
+          <div class="recommendation">
+            <h4>Recommendation</h4>
+
+            <p id="recommendation"></p>
+          </div>
+
+          <div id="virusTotalBox" class="virus-total-box">
+            <h4>VirusTotal</h4>
+
+            <p id="virusTotalStatus">Not checked</p>
+
+            <div id="virusTotalStats" class="vt-stats hidden">
+              <span>
+                Malicious:
+                <strong id="vtMalicious">0</strong>
+              </span>
+
+              <span>
+                Suspicious:
+                <strong id="vtSuspicious">0</strong>
+              </span>
+
+              <span>
+                Harmless:
+                <strong id="vtHarmless">0</strong>
+              </span>
+
+              <span>
+                Undetected:
+                <strong id="vtUndetected">0</strong>
+              </span>
+            </div>
+          </div>
+
+          <div id="urlActions" class="url-actions hidden">
+            <button id="openLinkButton" class="primary-btn">Open Link</button>
+
+            <span> The link will only open after you click the button. </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- HISTORY -->
+
+      <section id="history-section" class="section">
+        <div class="section-heading">
+          <span class="section-label"> SCAN HISTORY </span>
+
+          <h2>Previous Scans</h2>
+
+          <p>Your previous ScamShield analyses stored in MongoDB.</p>
+        </div>
+
+        <div class="history-stats">
+          <div class="stat-card">
+            <span>Total</span>
+            <strong id="totalScans">0</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>Low</span>
+            <strong id="lowScans">0</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>Medium</span>
+            <strong id="mediumScans">0</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>High</span>
+            <strong id="highScans">0</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>Critical</span>
+            <strong id="criticalScans">0</strong>
+          </div>
+        </div>
+
+        <div id="historyList" class="history-list"></div>
+      </section>
+
+      <!-- REPORT -->
+
+      <section class="section report-section">
+        <div class="report-card">
+          <div>
+            <span class="section-label"> HELP US IMPROVE </span>
+
+            <h2>Found Something Suspicious?</h2>
+
+            <p>Report suspicious content to ScamShield.</p>
+          </div>
+
+          <button id="reportButton" class="secondary-btn">
+            Report Suspicious Content
+          </button>
+        </div>
+      </section>
+
+      <!-- ABOUT -->
+
+      <section id="about-section" class="section about-section">
+        <div class="section-heading">
+          <span class="section-label"> ABOUT SCAMSHIELD </span>
+
+          <h2>Security Before Trust</h2>
+
+          <p>
+            ScamShield combines transparent rule-based scam detection with
+            VirusTotal URL intelligence. QR codes are decoded inside the
+            application and are never opened automatically.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>🛡️ SCAMSHIELD</p>
+
+      <span> Stay alert. Verify before you trust. </span>
+    </footer>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="/frontend/script.js"></script>
+  </body>
+</html>
