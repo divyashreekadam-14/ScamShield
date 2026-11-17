@@ -246,9 +246,20 @@ async function analyzeMessage(){
         });
 
         const analysis=data.analysis||data;
+
         displayAnalysis(analysis,input,"MESSAGE");
+
+        // Automatically scroll to the analysis results
+        if(resultSection){
+            resultSection.scrollIntoView({
+                behavior:"smooth",
+                block:"start"
+            });
+        }
+
         loadHistory();
         loadStats();
+
     }catch(error){
         console.error(error);
         showToast(error.message||"Unable to analyze the message.");
